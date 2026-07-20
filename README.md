@@ -33,11 +33,6 @@ An intelligent, accessible, full-stack rehabilitation assistant designed to empo
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- **Node.js** (v18 or higher recommended)
-- **Google Gemini API Key** (for active coaching and AI summaries)
-
 ### Environment Setup
 
 Create a `.env` file in the root directory (based on `.env.example`):
