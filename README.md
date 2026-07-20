@@ -37,8 +37,7 @@ An intelligent, accessible, full-stack rehabilitation assistant designed to empo
 
 Create a `.env` file in the root directory (based on `.env.example`):
 
-```env
-GEMINI_API_KEY=your_actual_gemini_api_key_here
+```
 ```
 
 ### Installation
