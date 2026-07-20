@@ -1,0 +1,6 @@
+{
+  "name": "Stroke Recovery Hub",
+  "description": "An intelligent rehabilitation assistant for stroke survivors featuring custom exercise tracking, a caregiver portal, and an AI-powered coach with real-time safety monitoring.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

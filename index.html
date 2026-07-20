@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stroke Recovery Hub</title>
+    <script>
+      // Unregister any old Service Workers cached by the browser
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister().then(function(success) {
+              if (success) {
+                console.log('Unregistered stale service worker');
+                window.location.reload();
+              }
+            });
+          }
+        });
+      }
+
+      // Clear any stale Lovable or Supabase cache elements in client storage
+      try {
+        for (var key in localStorage) {
+          if (key.toLowerCase().includes('supabase') || key.toLowerCase().includes('lovable')) {
+            localStorage.removeItem(key);
+          }
+        }
+        for (var key in sessionStorage) {
+          if (key.toLowerCase().includes('supabase') || key.toLowerCase().includes('lovable')) {
+            sessionStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        console.error('Storage clear error:', e);
+      }
+
+      // Recursive, Shadow-DOM aware sweeper to find and destroy any injected banners/toasts
+      function cleanNode(node) {
+        if (!node) return;
+
+        // Check if this node itself should be hidden or removed
+        if (node.nodeType === 1) { // Element node
+          var tag = node.tagName.toUpperCase();
+          if (
+            tag !== 'HTML' && 
+            tag !== 'HEAD' && 
+            tag !== 'BODY' && 
+            tag !== 'SCRIPT' && 
+            tag !== 'STYLE' && 
+            tag !== 'LINK' && 
+            tag !== 'META' && 
+            tag !== 'TITLE' && 
+            node.id !== 'root'
+          ) {
+            var text = node.textContent || '';
+            if (
+              text.includes('Connect Supabase') || 
+              text.includes('SUPABASE_URL') || 
+              text.includes('SUPABASE_PUBLISHABLE_KEY') || 
+              text.includes('Lovable Cloud')
+            ) {
+              node.style.display = 'none';
+              node.style.setProperty('display', 'none', 'important');
+              
+              // Only remove if it is NOT inside #root (so React won't crash)
+              var isInsideRoot = false;
+              var parent = node.parentNode;
+              while (parent) {
+                if (parent.id === 'root') {
+                  isInsideRoot = true;
+                  break;
+                }
+                parent = parent.parentNode;
+              }
+              if (!isInsideRoot) {
+                node.remove();
+              }
+              return;
+            }
+          }
+        }
+
+        // Traverse light DOM children
+        if (node.childNodes) {
+          for (var i = 0; i < node.childNodes.length; i++) {
+            cleanNode(node.childNodes[i]);
+          }
+        }
+
+        // Traverse shadow DOM if present
+        if (node.shadowRoot) {
+          cleanNode(node.shadowRoot);
+        }
+      }
+
+      // Start observing the document as soon as possible
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          mutation.addedNodes.forEach(function(node) {
+            cleanNode(node);
+          });
+        });
+      });
+
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+
+      // Quick-firing continuous animation-frame and interval sweepers to catch late additions or state updates
+      function sweepAll() {
+        cleanNode(document.documentElement);
+        // Also query all tags on page and scan their shadow roots specifically
+        var els = document.querySelectorAll('*');
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].shadowRoot) {
+            cleanNode(els[i].shadowRoot);
+          }
+        }
+      }
+
+      // Run immediately on requestAnimationFrame loop for real-time responsiveness
+      function loop() {
+        sweepAll();
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      // Backup interval sweeper
+      setInterval(sweepAll, 100);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
